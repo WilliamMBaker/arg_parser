@@ -1,0 +1,14 @@
+[
+{
+  "directory": "C:/Users/Willi/Documents/arg_parser/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -g -o CMakeFiles\\CLI.dir\\CLI.c.obj -c C:\\Users\\Willi\\Documents\\arg_parser\\CLI.c",
+  "file": "C:/Users/Willi/Documents/arg_parser/CLI.c",
+  "output": "C:/Users/Willi/Documents/arg_parser/build/CMakeFiles/CLI.dir/CLI.c.obj"
+},
+{
+  "directory": "C:/Users/Willi/Documents/arg_parser/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -g -o CMakeFiles\\CLI.dir\\main.c.obj -c C:\\Users\\Willi\\Documents\\arg_parser\\main.c",
+  "file": "C:/Users/Willi/Documents/arg_parser/main.c",
+  "output": "C:/Users/Willi/Documents/arg_parser/build/CMakeFiles/CLI.dir/main.c.obj"
+}
+]
