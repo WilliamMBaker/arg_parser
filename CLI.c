@@ -20,6 +20,9 @@ uint8_t numberOfCommands = 0;	  // Number or registered commands
 // == PRIVATE FUNCTIONS DEFINITIONS ===========================================
 
 static bool CheckNameClash(Command_t newCmd);
+static bool CheckFlagClash(Command_t cmd, Flag_t newFlag);
+static bool GetCommandIndex(Command_t cmd, uint8_t *idx);
+static bool Help(uint8_t argc, char **argv);
 
 // == PUBLIC FUNCTIONS ========================================================
 
@@ -37,11 +40,13 @@ bool SetPrompt(char *newPrompt)
 {
 	if (strlen(newPrompt) > MAX_PROMPT_LEN)
 	{
+		printf("Strlen\r\n");
 		return false;
 	}
 
-	if (strcpy(prompt, newPrompt))
+	if (strcpy(prompt, newPrompt) == NULL)
 	{
+		printf("Strcpy\r\n");
 		return false;
 	}
 
@@ -55,19 +60,20 @@ bool RegisterCommand(Command_t cmd)
 		return false;
 	}
 
-	if (CheckNameClash(cmd))
+	if (CheckNameClash(cmd) != true)
+	{
+		printf("check name clash\r\n");
+		return false;
+	}
+
+	Command_t *ptr = realloc(commands, (numberOfCommands + 1) * sizeof(Command_t));
+	if (ptr == NULL)
 	{
 		return false;
 	}
 
-	void *ptr = (Command_t *)realloc(commands, numberOfCommands + 1);
-	if (ptr == NULL)
-	{
-		return false; // Cannot asign memory, command not registered
-	}
-
-	memcpy(commands + (numberOfCommands * COMMAND_SIZE), (const void *)&cmd, sizeof(Command_t));
-
+	commands = ptr;
+	memcpy(&commands[numberOfCommands], &cmd, sizeof(Command_t));
 	numberOfCommands++;
 
 	return true;
@@ -75,12 +81,67 @@ bool RegisterCommand(Command_t cmd)
 
 bool AddFlag(Command_t targetCmd, Flag_t flag)
 {
-	if (targetCmd.numberOfFlags == MAX_SUPPORTED_SIZE)
+	uint8_t idx;
+
+	if (GetCommandIndex(targetCmd, &idx) != true)
+	{
+		printf("No command by that name, failed to add flag\r\n");
+		return false;
+	}
+
+	if (commands[idx].numberOfFlags == MAX_SUPPORTED_SIZE)
 	{
 		return false;
 	}
 
+	if (CheckFlagClash(commands[idx], flag) != true)
+	{
+		printf("flag name clash\r\n");
+		return false;
+	}
+
+	Flag_t *ptr = realloc(commands[idx].flags, (commands[idx].numberOfFlags + 1) * sizeof(Flag_t));
+	if (ptr == NULL)
+	{
+		printf("failed ralloc\r\n");
+		return false;
+	}
+
+	commands[idx].flags = ptr;
+	memcpy(&commands[idx].flags[commands[idx].numberOfFlags], &flag, sizeof(Flag_t));
+	commands[idx].numberOfFlags++;
+
 	return true;
+}
+
+bool executeCommand(const char *name, uint8_t argc, char **argv)
+{
+	for (uint8_t i = 0; i < numberOfCommands; i++)
+	{
+		if (strcmp(commands[i].command, name) == 0)
+		{
+			if (commands[i].function)
+			{
+				commands[i].function(argc, argv);
+				return true;
+			}
+		}
+	}
+	printf("Command not found: %s\r\n", name);
+	return false;
+}
+
+bool RegisterHelp(void)
+{
+	Command_t helpCmd = {
+		.command = "help",
+		.help = "Help command.\r\n",
+		.function = Help};
+
+	if (RegisterCommand(helpCmd) != true)
+	{
+		return false;
+	}
 }
 
 // == PRIVATE FUNCTIONS =======================================================
@@ -89,10 +150,59 @@ static bool CheckNameClash(Command_t newCmd)
 {
 	for (uint8_t cmdIdx = 0; cmdIdx < numberOfCommands; cmdIdx++)
 	{
-		char *cmd = (commands + (cmdIdx * COMMAND_SIZE))->command;
-		if (strcmp(cmd, newCmd.command) != 0)
+		if (strcmp(commands[cmdIdx].command, newCmd.command) == 0)
 		{
 			return false;
+		}
+	}
+
+	return true;
+}
+
+static bool CheckFlagClash(Command_t cmd, Flag_t newFlag)
+{
+	for (uint8_t flagIdx = 0; flagIdx < cmd.numberOfFlags; flagIdx++)
+	{
+		if (strcmp(cmd.flags[flagIdx].shortFlag, newFlag.shortFlag) == 0 ||
+			strcmp(cmd.flags[flagIdx].longFlag, newFlag.longFlag) == 0)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+static bool GetCommandIndex(Command_t cmd, uint8_t *idx)
+{
+	for (uint8_t cmdIdx = 0; cmdIdx < numberOfCommands; cmdIdx++)
+	{
+		if (strcmp(commands[cmdIdx].command, cmd.command) == 0)
+		{
+			*idx = cmdIdx;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static bool Help(uint8_t argc, char **argv)
+{
+	printf("Help:\r\n");
+
+	for (uint8_t cmdIdx = 0; cmdIdx < numberOfCommands; cmdIdx++)
+	{
+		printf("\t%s\t%s",
+			   commands[cmdIdx].command,
+			   commands[cmdIdx].help);
+
+		for (uint8_t flagIdx = 0; flagIdx < commands[cmdIdx].numberOfFlags; flagIdx++)
+		{
+			printf("\t\t(%s | %s)\t%s\r\n",
+				   commands[cmdIdx].flags[flagIdx].shortFlag,
+				   commands[cmdIdx].flags[flagIdx].longFlag,
+				   commands[cmdIdx].flags[flagIdx].help);
 		}
 	}
 
