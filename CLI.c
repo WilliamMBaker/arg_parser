@@ -11,6 +11,8 @@
 #define MAX_PROMPT_LEN 10
 #define DEFAULT_PROMPT "cli>"
 
+#define UNUSED(x) (void)(x)
+
 // == PRIVATE VARIABLES =======================================================
 
 char prompt[MAX_PROMPT_LEN] = ""; // Terminal input prompt
@@ -22,7 +24,7 @@ uint8_t numberOfCommands = 0;	  // Number or registered commands
 static bool CheckNameClash(Command_t newCmd);
 static bool CheckFlagClash(Command_t cmd, Flag_t newFlag);
 static bool GetCommandIndex(Command_t cmd, uint8_t *idx);
-static bool Help(uint8_t argc, char **argv);
+static bool Help(Command_t command, uint8_t argc, char **argv);
 
 // == PUBLIC FUNCTIONS ========================================================
 
@@ -122,7 +124,7 @@ bool executeCommand(const char *name, uint8_t argc, char **argv)
 		{
 			if (commands[i].function)
 			{
-				commands[i].function(argc, argv);
+				commands[i].function(commands[i], argc, argv);
 				return true;
 			}
 		}
@@ -187,8 +189,9 @@ static bool GetCommandIndex(Command_t cmd, uint8_t *idx)
 	return false;
 }
 
-static bool Help(uint8_t argc, char **argv)
+static bool Help(Command_t command, uint8_t argc, char **argv)
 {
+	UNUSED(command);
 	printf("Help:\r\n");
 
 	for (uint8_t cmdIdx = 0; cmdIdx < numberOfCommands; cmdIdx++)

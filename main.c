@@ -5,9 +5,11 @@
 #include <stdbool.h>
 #include "CLI.h"
 
-static bool Test1Callback(uint8_t argc, char **argv)
+static bool Test1Callback(Command_t command, uint8_t argc, char **argv)
 {
 	printf("Test 1\r\n");
+
+	return true;
 }
 
 int main(void)

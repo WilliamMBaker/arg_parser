@@ -9,10 +9,11 @@ typedef struct _Flag_t
 	char *shortFlag; // e.g. -h
 	char *longFlag;	 // e.g. -help
 	char *help;		 // Hint
-	bool takesArg;	 // Delimited by space, next string is argument attached to flag. Defaults to false
 } Flag_t;
 
-typedef bool (*CommandCallback_t)(uint8_t argc, char **argv);
+struct _Command_t;
+
+typedef bool (*CommandCallback_t)(struct _Command_t command, uint8_t argc, char **argv);
 
 typedef struct _Command_t
 {
