@@ -144,6 +144,8 @@ bool RegisterHelp(void)
 	{
 		return false;
 	}
+
+	return true;
 }
 
 // == PRIVATE FUNCTIONS =======================================================
